@@ -8,8 +8,11 @@
     "test": "jest"
   },
   "author": "roman@turch.in",
-  "license": "free",
-  "files": ["src/**/*.ts", "build/**"],
+  "license": "Zlib",
+  "files": [
+    "src/**/*.ts",
+    "build/**"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ololoken/struct.git"
