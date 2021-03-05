@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["es2020", "dom"],
+    "allowJs": true,
+    "outDir": "../build/dom",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "declaration": true
+  },
+  "exclude": [
+    "build",
+    "spec",
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.node.ts"
+  ]
+}
