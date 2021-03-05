@@ -1,5 +1,5 @@
 import {Struct, Primitive, ItemsFormatter} from '../src/Struct'
-import {StringFormatter, la, l, Swap16Formatter, Swap32Formatter} from '../src/Helpers.node'
+import {StringFormatter, la, l, Swap16Formatter, USwap16Formatter, Swap32Formatter, USwap32Formatter} from '../src/Helpers.node'
 import {readFileSync} from 'fs';
 import {TextDecoder} from 'util';
 
@@ -53,28 +53,19 @@ describe('Test struct', () => {
         expect(content).toContain(']?[ 04 010 011 013 017   (No cubes)');
     })
 
-    it('test swap16 formatter', () => {
-        let buffer = Buffer.alloc(2, 0);
-        buffer.writeUInt16LE(3000, 0);
-
-        let swap16 = new Struct<{swap: number[]}>().array('swap', Primitive.UInt16LE(), Struct.one, Swap16Formatter);
-
-        let {swap: [swapped]} = swap16.unpack(new DataView(buffer.buffer));
-
-        buffer.swap16();
-        expect(swapped).toBe(buffer.readUInt16LE(0));
+    it('test swap16 formatters', () => {
+        expect(Swap16Formatter([0xB80B])[0]).toBe(0x0BB8);
+        expect(Swap16Formatter([0xFFFF])[0]).toBe(-1);
+        expect(Swap16Formatter([0xFEFF])[0]).toBe(-2);
+        expect(USwap16Formatter([0xAFFE])[0]).toBe(0xFEAF);
     });
 
-    it('test swap32 formatter', () => {
-        let buffer = Buffer.alloc(4, 0);
-        buffer.writeInt32LE(5051, 0);
-
-        let swap32 = new Struct<{swap: number[]}>().array('swap', Primitive.Int32LE(), Struct.one, Swap32Formatter);
-
-        let {swap: [swapped]} = swap32.unpack(new DataView(buffer.buffer));
-
-        buffer.swap32();
-        expect(swapped).toBe(buffer.readInt32LE(0));
+    it('test swap32 formatters', () => {
+        expect(USwap32Formatter([0xBB130000])[0]).toBe(0x000013BB)
+        expect(USwap32Formatter([0xFFFFFFBB])[0]).toBe(0xBBFFFFFF)
+        expect(USwap32Formatter([0x000013BB])[0]).toBe(0xBB130000)
+        expect(Swap32Formatter([0xBBFFFFFF])[0]).toBe(-69)
+        expect(Swap32Formatter([0xFFFFFFFF])[0]).toBe(-1)
     });
 
 });
