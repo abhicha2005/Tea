@@ -2,7 +2,9 @@
   "name": "@ololoken/struct",
   "version": "0.0.1",
   "description": "binary data parser",
-  "main": "index.js",
+  "main": "build/node/index.node.js",
+  "browser": "build/dom/index.dom.js",
+  "types": "build/node/index.node.d.ts",
   "scripts": {
     "build": "tsc --project ./src/tsconfig-dom.json && tsc --project ./src/tsconfig-node.json",
     "test": "jest"
@@ -10,7 +12,6 @@
   "author": "roman@turch.in",
   "license": "Zlib",
   "files": [
-    "src/**/*.ts",
     "build/**"
   ],
   "repository": {
