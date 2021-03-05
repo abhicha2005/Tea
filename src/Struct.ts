@@ -94,11 +94,11 @@ export const Primitive: Record<BinaryDataType, (() => Unpackable<number>)> = {
     }),
 }
 
-const data: unique symbol = Symbol();
-const ignore: unique symbol = Symbol();
+const dataref: unique symbol = Symbol();
+const ignorable: unique symbol = Symbol();
 
-type DataInjection<I> = {[data]: unknown[]};
-export type SequenceItemLength<I> = (res: I & DataInjection<I>) => number;
+type DataInjection<I> = {[dataref]: I[]};
+export type SequenceItemLength<I> = (res: I & DataInjection<unknown>) => number;
 
 const single: ItemsFormatter<any, any> = (data) => data[0];
 const identity: ItemsFormatter<any, any> = (data) => data;
@@ -116,13 +116,11 @@ export class Struct<C extends {}> implements Unpackable<C> {
         length: SequenceItemLength<C>,
         formatter: ItemsFormatter<any, any>
     }[] = [];
-    private res: C;
+    private res!: C;
     private readonly type: new () => C;
     private offset: number = 0;
     public static readonly one: SequenceItemLength<any> = l(1);
     public static readonly all: SequenceItemLength<any> = l(Number.MAX_SAFE_INTEGER);
-
-    public static readonly data = data;
 
     public constructor (type: new () => C = <any>Object) {
         this.type = type;
@@ -138,10 +136,10 @@ export class Struct<C extends {}> implements Unpackable<C> {
         return this;
     }
 
-    public offsetOf<A, F extends C[keyof C] & number> (as: keyof C, unpackable: Unpackable<A>, lookup: (A) => boolean): Struct<C> {
+    public offsetOf<A, F extends C[keyof C] & number> (as: keyof C, unpackable: Unpackable<A>, lookup: (by: A) => boolean): Struct<C> {
         let foundAt: number = -1;
         this.sequence.push({name: as, unpackable, length: (payload) => {
-            let raw: A[] = payload[Struct.data];
+            let raw: A[] = <A[]>payload[dataref];
             if (raw.length === 0) return Struct.all(payload);
             if (lookup(raw[raw.length-1])) {
                 foundAt = raw.length-1;
@@ -154,7 +152,7 @@ export class Struct<C extends {}> implements Unpackable<C> {
     }
 
     public goto (offset: SequenceItemLength<C>): Struct<C> {
-        this.sequence.push({name: ignore, unpackable: {
+        this.sequence.push({name: ignorable, unpackable: {
                 get size () {return 0},
                 unpack: () => this.seek(offset)
             }, length: Struct.one, formatter: single});
@@ -169,26 +167,24 @@ export class Struct<C extends {}> implements Unpackable<C> {
         return this.offset;
     }
 
-    private inject (payload: unknown[] = []): C & DataInjection<C> {
-        return {...this.res, [data]: payload}
+    private inject<A> (payload: A[] = []): C & DataInjection<A> {
+        return {...this.res, [dataref]: payload}
     }
 
-    private isIgnorable(name: keyof C | symbol): name is keyof C{
-        return name === ignore;
+    private isKeyOfC(name: keyof C | symbol): name is keyof C{
+        return name !== ignorable;
     }
 
     public unpack (view: DataView, offset: number = 0): C {
         this.offset = offset;
         this.res = new this.type();
         for (let {name, unpackable, length, formatter} of this.sequence) {
-            let data = [] as ReturnType<typeof unpackable.unpack>[];
+            let data: ReturnType<typeof unpackable.unpack>[] = [];
             for (let i = 0, l = view.byteLength; i < length(this.inject(data)) && this.offset < l; i++) {
                 data[i] = unpackable.unpack(view, this.offset);
                 this.offset += unpackable.size;
             }
-            if (!this.isIgnorable(name)) {
-                this.res[name] = formatter(data);
-            }
+            this.isKeyOfC(name) && (this.res[name] = formatter(data));
         }
         return this.res;
     }

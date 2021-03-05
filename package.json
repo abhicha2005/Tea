@@ -1,5 +1,5 @@
 {
-  "name": "struct",
+  "name": "@ololoken/struct",
   "version": "0.0.1",
   "description": "binary data parser",
   "main": "index.js",
@@ -9,6 +9,11 @@
   },
   "author": "roman@turch.in",
   "license": "free",
+  "files": ["src/**/*.ts", "build/**"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ololoken/struct.git"
+  },
   "devDependencies": {
     "@types/node": "^14.14.28",
     "@types/jest": "^26.0.20",
