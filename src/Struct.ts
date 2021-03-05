@@ -4,8 +4,8 @@ type BinaryDataType = 'Int8'| 'UInt8' | 'Int16BE' | 'Int16LE' | 'UInt16BE' | 'UI
 type LargeDataType = 'BigInt64BE' | 'BigInt64LE' | 'BigUInt64BE' | 'BigUInt64LE';
 type FractionDataType = 'DoubleBE' | 'DoubleLE' | 'FloatBE' | 'FloatLE';
 
-export interface ItemsFormatter<A, R> {
-    (data: A[]): R
+export interface ItemsFormatter<I, R> {
+    (data: I[]): R
 }
 
 interface Unpackable<R> {

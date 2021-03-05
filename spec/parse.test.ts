@@ -1,5 +1,5 @@
 import {Struct, Primitive, ItemsFormatter} from '../src/Struct'
-import {StringFormatter, la, l} from '../src/Helpers.node'
+import {StringFormatter, la, l, Swap16Formatter, Swap32Formatter} from '../src/Helpers.node'
 import {readFileSync} from 'fs';
 import {TextDecoder} from 'util';
 
@@ -16,12 +16,9 @@ describe('Test struct', () => {
         let data = new DataView(buffer.buffer);
 
         let txtStruct = new Struct<{eol: number, text: string}>()
-            //lookup
             .offsetOf('eol', Primitive.Int8(), (n) => n === 0)
-            //do some shifts
-            .goto(({eol}) => eol)
+            .goto(la('eol'))
             .goto(l(0))
-            //read and decode
             .array('text', Char, la('eol'), StringFormatter());
 
         let res = txtStruct.unpack(data);
@@ -55,5 +52,29 @@ describe('Test struct', () => {
         let content = strings.map(({data}) => data).join('');
         expect(content).toContain(']?[ 04 010 011 013 017   (No cubes)');
     })
+
+    it('test swap16 formatter', () => {
+        let buffer = Buffer.alloc(2, 0);
+        buffer.writeUInt16LE(3000, 0);
+
+        let swap16 = new Struct<{swap: number[]}>().array('swap', Primitive.UInt16LE(), Struct.one, Swap16Formatter);
+
+        let {swap: [swapped]} = swap16.unpack(new DataView(buffer.buffer));
+
+        buffer.swap16();
+        expect(swapped).toBe(buffer.readUInt16LE(0));
+    });
+
+    it('test swap32 formatter', () => {
+        let buffer = Buffer.alloc(4, 0);
+        buffer.writeInt32LE(5051, 0);
+
+        let swap32 = new Struct<{swap: number[]}>().array('swap', Primitive.Int32LE(), Struct.one, Swap32Formatter);
+
+        let {swap: [swapped]} = swap32.unpack(new DataView(buffer.buffer));
+
+        buffer.swap32();
+        expect(swapped).toBe(buffer.readInt32LE(0));
+    });
 
 });
