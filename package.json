@@ -1,6 +1,6 @@
 {
   "name": "@ololoken/struct",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "binary data parser",
   "main": "build/node/index.node.js",
   "browser": "build/dom/index.dom.js",
