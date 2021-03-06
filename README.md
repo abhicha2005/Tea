@@ -1,4 +1,4 @@
-# struct
+# struct [![CI](https://github.com/ololoken/struct/actions/workflows/main.yml/badge.svg)](https://github.com/ololoken/struct/actions/workflows/main.yml)
 
 A binary data unpacking library written in typescript. Support both node and dom.
 
