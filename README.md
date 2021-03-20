@@ -10,7 +10,7 @@ What can it do?
     * large numbers: BigInt64BE | BigInt64LE | BigUInt64BE | BigUInt64LE,
     * fractional numbers: DoubleBE | DoubleLE | FloatBE | FloatLE;
 * Handle booleans and strings with built-in helpers;
-* Search in binary data;
+* Search offset in binary data;
 * Fully customizable data structures with ts types hinting;
 
 Usage
@@ -46,4 +46,3 @@ expected output:
 ```
 See more examples in spec. 
 
-To be continued....
