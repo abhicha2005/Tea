@@ -7,6 +7,7 @@ describe('Test struct', () => {
 
     const utf8String = '—simple utf-8©іѳ≈˚§€²³$‰←∞\0';
     const encryptedFile = readFileSync(`${__dirname}/resources/471-strings.dat`);
+    const binaryFile = readFileSync(`${__dirname}/resources/newshl.shp`);
     const [Byte, Char] = [Primitive.UInt8(), Primitive.Int8()];
 
     it('read null terminated string', () => {
@@ -66,6 +67,21 @@ describe('Test struct', () => {
         expect(USwap32Formatter([0x000013BB])[0]).toBe(0xBB130000)
         expect(Swap32Formatter([0xBBFFFFFF])[0]).toBe(-69)
         expect(Swap32Formatter([0xFFFFFFFF])[0]).toBe(-1)
+    });
+
+    it('test continuous read of binary packets', () => {
+        let dataItemStruct = new Struct<{size: number, data: number[]}>()
+            .offsetOf('size', Byte, (c) => c == 0x0F)//end of binary packet is marked by 0x0F
+            .array('data', Byte, ({size}) => size+1);
+        let allData = new Struct<any>()
+            .array('packets', dataItemStruct, l(Number.MAX_SAFE_INTEGER));
+        let data = allData.unpack(new DataView(binaryFile.buffer));
+
+        expect(data.packets.length).toBe(312);//magic number
+        expect(data.packets[3].data.length).toBe(data.packets[3].size+1);
+
+        expect(data.packets[3].data[data.packets[3].size]).toBe(0x0F);//but packets last byte includes 0x0F
+        expect(data.packets[100].data[data.packets[100].data.length-1]).toBe(0x0F);
     });
 
 });

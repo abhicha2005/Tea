@@ -105,16 +105,18 @@ const identity: ItemsFormatter<any, any> = (data) => data;
 
 export class Struct<C extends {}> implements Unpackable<C> {
     get size () {
-        return this.sequence.reduce((acc, {unpackable, length}) => {
-            return acc + length(this.inject()) * unpackable.size
-        }, 0);
+        return this.sequence
+            .filter(({isOffset}) => !isOffset)//skip elements representing position
+            .map(({unpackable, length}) => length(this.inject()) * unpackable.size)
+            .reduce((acc, sz) => acc+sz, 0);
     }
 
     private sequence: {
         name: keyof C | symbol,
         unpackable: Unpackable<unknown>,
         length: SequenceItemLength<C>,
-        formatter: ItemsFormatter<any, any>
+        formatter: ItemsFormatter<any, any>,
+        isOffset?: boolean
     }[] = [];
     private res!: C;
     private readonly type: new () => C;
@@ -137,17 +139,15 @@ export class Struct<C extends {}> implements Unpackable<C> {
     }
 
     public offsetOf<A, F extends C[keyof C] & number> (as: keyof C, unpackable: Unpackable<A>, lookup: (by: A) => boolean): Struct<C> {
-        let foundAt: number = -1;
-        this.sequence.push({name: as, unpackable, length: (payload) => {
-            let raw: A[] = <A[]>payload[dataref];
-            if (raw.length === 0) return Struct.all(payload);
-            if (lookup(raw[raw.length-1])) {
-                foundAt = raw.length-1;
-                this.seek(() => this.tell()-raw.length);
-                return 0;
-            }
-            return Struct.all(payload);
-        }, formatter: () => foundAt});
+        this.sequence.push({name: as, unpackable, length: (payload: C & DataInjection<unknown>) => {
+                let raw: A[] = <A[]>payload[dataref];
+                if (raw.length === 0) return Struct.all(payload);
+                if (lookup(raw[raw.length-1])) {
+                    this.seek(() => this.tell()-raw.length);//rewind
+                    return 0;
+                }
+                return Struct.all(payload);
+            }, formatter: (r: unknown[]) => r.length-1, isOffset: true});
         return this;
     }
 
